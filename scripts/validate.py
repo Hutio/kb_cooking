@@ -77,6 +77,79 @@ def check_common(r, body, names, errs):
             errs["자기 자신 링크"].append(f"{r}: [[{tgt}]]")
 
 
+def is_index_doc(p):
+    """개요·지도·홈 — 탐색면 역할을 하는 문서."""
+    b = os.path.basename(p)
+    return b.endswith("(개요).md") or b.endswith("(지도).md") or b == "홈.md"
+
+
+def check_navigation(paths, errs):
+    """모든 문서는 가장 가까운 개요의 '## 전체 목록'에 실려야 한다.
+
+    개요는 계층이다 — 식재료 (개요) 는 채소 (개요) 로 위임하고, 채소 (개요) 가
+    개별 문서를 싣는다. 그래서 '어딘가에 링크됐나'가 아니라 '자기 폴더를 맡은
+    개요가 실었나'로 본다. 개요가 없는 폴더는 홈.md 가 대신 맡는다.
+    새 문서를 쓰고 개요 등재를 빠뜨리는 일이 반복돼서 검사로 만들었다.
+    """
+    idxs = {}
+    for p in paths:
+        if os.path.basename(p).endswith("(개요).md"):
+            idxs[os.path.dirname(p)] = p
+    home = os.path.join(ROOT, "홈.md")
+
+    def nearest(d):
+        while True:
+            if d in idxs:
+                return idxs[d]
+            nd = os.path.dirname(d)
+            if nd == d or os.path.normpath(d) == os.path.normpath(ROOT):
+                return home if os.path.exists(home) else None
+            d = nd
+
+    cache = {}
+
+    def listed(ip):
+        if ip not in cache:
+            m = re.search(r"^## 전체 목록\s*$(.*?)(?=^## |\Z)",
+                          open(ip, encoding="utf-8").read(), re.M | re.S)
+            cache[ip] = set() if not m else {
+                x.split("|")[0].split("#")[0].strip().split("/")[-1]
+                for x in re.findall(r"\[\[([^\]]+)\]\]", m.group(1))}
+        return cache[ip]
+
+    for p in paths:
+        b = os.path.basename(p)
+        if b.endswith("(개요).md") or p == home:
+            continue
+        ip = nearest(os.path.dirname(p))
+        if ip and b[:-3] not in listed(ip):
+            errs["개요 미등재"].append(f"{rel(p)} → {os.path.basename(ip)[:-3]}")
+
+
+def check_home_counts(paths, errs):
+    """홈.md 표의 문서 수가 실제와 맞는지.
+
+    손으로 적은 숫자는 반드시 낡는다. 실제 개수 = 그 개요가 있는 폴더 아래
+    개요가 아닌 .md 파일 수로 정의한다.
+    """
+    home = os.path.join(ROOT, "홈.md")
+    if not os.path.exists(home):
+        return
+    idxdir = {os.path.basename(p)[:-3]: os.path.dirname(p)
+              for p in paths if os.path.basename(p).endswith("(개요).md")}
+    for m in re.finditer(r"\|\s*\[\[([^\]]+?)\]\]\s*\|\s*(\d+)\s*\|",
+                         open(home, encoding="utf-8").read()):
+        name, stated = m.group(1), int(m.group(2))
+        d = idxdir.get(name)
+        if d is None:
+            continue
+        actual = sum(1 for p in paths
+                     if p.startswith(d + os.sep) or os.path.dirname(p) == d
+                     if not os.path.basename(p).endswith("(개요).md"))
+        if actual != stated:
+            errs["홈 문서 수 불일치"].append(f"{name}: 표기 {stated} / 실제 {actual}")
+
+
 def main():
     paths = list(walk())
     names = {}
@@ -154,6 +227,9 @@ def main():
             errs["제목 뒤 요약(>) 없음"].append(r)
 
         check_common(r, body, names, errs)
+
+    check_navigation(paths, errs)
+    check_home_counts(paths, errs)
 
     total = sum(len(v) for v in errs.values())
     print(f"검사 파일: {len(paths)}개")
