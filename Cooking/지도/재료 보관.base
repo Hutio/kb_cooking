@@ -1,0 +1,58 @@
+filters:
+  and:
+    - 'note.type == "ingredient"'
+properties:
+  file.name:
+    displayName: 재료
+  note.group:
+    displayName: 분류
+  note.storage:
+    displayName: 보관 온도대
+  note.storage_short:
+    displayName: 단기 보관
+  note.storage_long:
+    displayName: 장기 보관
+views:
+  - type: table
+    name: 분류별
+    order:
+      - file.name
+      - note.group
+      - note.storage
+      - note.storage_short
+      - note.storage_long
+    groupBy:
+      property: note.group
+      direction: ASC
+    sort:
+      - property: file.name
+        direction: ASC
+  - type: table
+    name: 보관 온도대별
+    order:
+      - file.name
+      - note.group
+      - note.storage_short
+      - note.storage_long
+    groupBy:
+      property: note.storage
+      direction: ASC
+    sort:
+      - property: file.name
+        direction: ASC
+  - type: table
+    name: 냉장 먼저 쓸 것
+    filters:
+      or:
+        - 'note.storage == "냉장"'
+        - 'note.storage == "냉장·냉동"'
+    order:
+      - file.name
+      - note.group
+      - note.storage_short
+      - note.storage_long
+    sort:
+      - property: note.group
+        direction: ASC
+      - property: file.name
+        direction: ASC

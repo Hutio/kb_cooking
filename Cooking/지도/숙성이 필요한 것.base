@@ -1,0 +1,50 @@
+filters:
+  or:
+    - and:
+        - 'note.type == "recipe"'
+        - 'file.hasProperty("aging")'
+    - and:
+        - 'note.type == "technique"'
+        - or:
+            - 'note.group == "발효"'
+            - 'file.hasTag("염지")'
+properties:
+  file.name:
+    displayName: 문서
+  note.type:
+    displayName: 유형
+  note.cuisine:
+    displayName: 계열
+  note.category:
+    displayName: 분류
+  note.aging:
+    displayName: 숙성 조건
+  note.difficulty:
+    displayName: 난이도
+views:
+  - type: table
+    name: 전체
+    order:
+      - file.name
+      - note.type
+      - note.category
+      - note.aging
+      - note.difficulty
+    sort:
+      - property: note.type
+        direction: ASC
+      - property: file.name
+        direction: ASC
+  - type: table
+    name: 유형별
+    order:
+      - file.name
+      - note.cuisine
+      - note.category
+      - note.aging
+    groupBy:
+      property: note.type
+      direction: ASC
+    sort:
+      - property: file.name
+        direction: ASC

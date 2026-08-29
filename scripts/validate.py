@@ -86,6 +86,13 @@ def main():
         dupes[b].append(p)
         names[b] = p
 
+    # .base(Bases) 파일도 링크 대상이다 — [[재료 보관.base]] 처럼 확장자까지 써서 건다.
+    for dp, dn, fn in os.walk(ROOT):
+        dn[:] = [d for d in dn if d != ".obsidian"]
+        for f in fn:
+            if f.endswith(".base"):
+                names[f] = os.path.join(dp, f)
+
     errs = collections.defaultdict(list)
 
     for name, ps in dupes.items():

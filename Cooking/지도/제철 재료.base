@@ -1,0 +1,44 @@
+filters:
+  and:
+    - 'note.type == "ingredient"'
+    - 'file.hasProperty("season")'
+properties:
+  file.name:
+    displayName: 재료
+  note.group:
+    displayName: 분류
+  note.season:
+    displayName: 제철
+  note.storage:
+    displayName: 보관 온도대
+  note.storage_short:
+    displayName: 단기 보관
+views:
+  - type: table
+    name: 분류별
+    order:
+      - file.name
+      - note.group
+      - note.season
+      - note.storage
+      - note.storage_short
+    groupBy:
+      property: note.group
+      direction: ASC
+    sort:
+      - property: note.season
+        direction: ASC
+      - property: file.name
+        direction: ASC
+  - type: table
+    name: 제철 표기순
+    order:
+      - file.name
+      - note.group
+      - note.season
+      - note.storage_short
+    sort:
+      - property: note.season
+        direction: ASC
+      - property: file.name
+        direction: ASC

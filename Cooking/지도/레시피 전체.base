@@ -1,0 +1,76 @@
+filters:
+  and:
+    - 'note.type == "recipe"'
+properties:
+  file.name:
+    displayName: 요리
+  note.cuisine:
+    displayName: 계열
+  note.category:
+    displayName: 분류
+  note.servings:
+    displayName: 인분
+  note.time_total:
+    displayName: 총 시간(분)
+  note.time_active:
+    displayName: 손 가는 시간(분)
+  note.difficulty:
+    displayName: 난이도
+  note.updated:
+    displayName: 갱신
+views:
+  - type: table
+    name: 계열별
+    order:
+      - file.name
+      - note.cuisine
+      - note.category
+      - note.servings
+      - note.time_total
+      - note.time_active
+      - note.difficulty
+    groupBy:
+      property: note.cuisine
+      direction: ASC
+    sort:
+      - property: note.category
+        direction: ASC
+      - property: file.name
+        direction: ASC
+  - type: table
+    name: 난이도별
+    order:
+      - file.name
+      - note.cuisine
+      - note.category
+      - note.time_total
+      - note.difficulty
+    groupBy:
+      property: note.difficulty
+      direction: ASC
+    sort:
+      - property: note.time_total
+        direction: ASC
+  - type: table
+    name: 오래 걸리는 순
+    order:
+      - file.name
+      - note.cuisine
+      - note.category
+      - note.time_total
+      - note.time_active
+      - note.difficulty
+    sort:
+      - property: note.time_total
+        direction: DESC
+  - type: table
+    name: 최근 갱신순
+    order:
+      - file.name
+      - note.cuisine
+      - note.category
+      - note.updated
+    sort:
+      - property: note.updated
+        direction: DESC
+    limit: 40
