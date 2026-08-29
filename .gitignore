@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+._*
+
+# iCloud 동기화 충돌 사본 ("홈 2.md" 형태)
+* [0-9].md
+*conflict*
+*.icloud
+
+# Obsidian — 기기별 상태는 공유하지 않는다
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.trash/
+
+# Claude Code 개인 설정
+.claude/settings.local.json
