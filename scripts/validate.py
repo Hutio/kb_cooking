@@ -150,6 +150,39 @@ def check_home_counts(paths, errs):
             errs["홈 문서 수 불일치"].append(f"{name}: 표기 {stated} / 실제 {actual}")
 
 
+MY_STATUS = {"완성", "개선 중", "보류"}
+
+
+def check_tags_and_my_recipes(r, p, fm, errs):
+    """태그 공백 금지, 내 레시피 필수 속성.
+
+    Obsidian 태그는 띄어쓰기를 허용하지 않는다 — "내 레시피" 태그는 실제로
+    작동하지 않고 있었다. 내 레시피는 별점·상태·시도 기록이 문서의 핵심이라
+    속성을 빠뜨리면 Bases 목록에서 사라진다.
+    """
+    tags = [x.strip().strip("\"'") for x in re.split(r"[,\[\]]", fm.get("tags", "")) if x.strip()]
+    for tag in tags:
+        if " " in tag:
+            errs["태그에 공백"].append(f"{r}: {tag}")
+    if "/내 레시피/" not in p or os.path.basename(p).endswith("(개요).md"):
+        return
+    if "내레시피" not in tags:
+        errs["내 레시피: 태그 내레시피 없음"].append(r)
+    missing = [k for k in ("status", "tried", "attempts") if not fm.get(k)]
+    if missing:
+        errs["내 레시피: 필수 속성 누락"].append(f"{r}: {', '.join(missing)}")
+    if fm.get("status") and fm["status"] not in MY_STATUS:
+        errs["내 레시피: status 값"].append(f"{r}: {fm['status']}")
+    rating = fm.get("rating", "")
+    if rating:
+        try:
+            v = float(rating)
+            if not (0 <= v <= 5 and (v * 2) == int(v * 2)):
+                raise ValueError
+        except ValueError:
+            errs["내 레시피: rating 은 0~5, 0.5 단위"].append(f"{r}: {rating}")
+
+
 def main():
     paths = list(walk())
     names = {}
@@ -193,6 +226,8 @@ def main():
         if t not in EXTRA:
             check_common(r, body, names, errs)
             continue
+
+        check_tags_and_my_recipes(r, p, fm, errs)
 
         title = fm.get("title", "").strip().strip("\"'")
         if title and title != os.path.basename(p)[:-3]:

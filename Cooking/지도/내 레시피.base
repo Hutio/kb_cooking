@@ -1,0 +1,43 @@
+filters:
+  and:
+    - 'note.type == "recipe"'
+    - 'file.hasTag("내레시피")'
+properties:
+  file.name:
+    displayName: 레시피
+  note.rating:
+    displayName: 별점
+  note.status:
+    displayName: 상태
+  note.tried:
+    displayName: 마지막 시도
+  note.attempts:
+    displayName: 횟수
+  note.cuisine:
+    displayName: 계열
+views:
+  - type: table
+    name: 별점순
+    order:
+      - file.name
+      - note.rating
+      - note.status
+      - note.tried
+      - note.attempts
+      - note.cuisine
+    sort:
+      - property: note.rating
+        direction: DESC
+  - type: table
+    name: 상태별
+    order:
+      - file.name
+      - note.status
+      - note.rating
+      - note.tried
+    groupBy:
+      property: note.status
+      direction: ASC
+    sort:
+      - property: note.tried
+        direction: DESC
